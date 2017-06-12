@@ -14,6 +14,7 @@ import scipy.sparse
 import scipy.io as sio
 import utils.cython_bbox
 import cPickle
+import numpy as np
 import subprocess
 import uuid
 from voc_eval import voc_eval
@@ -27,12 +28,15 @@ class pascal_voc(imdb):
         self._devkit_path = self._get_default_path() if devkit_path is None \
                             else devkit_path
         self._data_path = os.path.join(self._devkit_path, 'VOC' + self._year)
-        self._classes = ('__background__', # always index 0
-                         'aeroplane', 'bicycle', 'bird', 'boat',
-                         'bottle', 'bus', 'car', 'cat', 'chair',
-                         'cow', 'diningtable', 'dog', 'horse',
-                         'motorbike', 'person', 'pottedplant',
-                         'sheep', 'sofa', 'train', 'tvmonitor')
+       
+        self._classes= ('__background__',
+                      'tag',) + tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" )
+           
+
+
+
+
+
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
@@ -64,8 +68,11 @@ class pascal_voc(imdb):
         """
         Construct an image path from the image's "index" identifier.
         """
+        
+	folder = str(int(np.floor((int(index)-1)/50000 + 1 )*5))+'k'
+
         image_path = os.path.join(self._data_path, 'JPEGImages',
-                                  index + self._image_ext)
+                                  folder, index + self._image_ext)
         assert os.path.exists(image_path), \
                 'Path does not exist: {}'.format(image_path)
         return image_path
@@ -182,7 +189,9 @@ class pascal_voc(imdb):
         Load image and bounding boxes info from XML file in the PASCAL VOC
         format.
         """
-        filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
+        folder = str(int(np.floor(int(index)-1)/50000  + 1)*5)+'k'
+
+        filename = os.path.join(self._data_path, 'Annotations', folder ,index + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
         if not self.config['use_diff']:
@@ -205,11 +214,12 @@ class pascal_voc(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) - 1
-            y1 = float(bbox.find('ymin').text) - 1
+            x1 = float(bbox.find('xmin').text) #- 1
+            y1 = float(bbox.find('ymin').text) #- 1
             x2 = float(bbox.find('xmax').text) - 1
             y2 = float(bbox.find('ymax').text) - 1
-            cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+            #print(obj.find('name').text,'#############################')                    
+            cls = self._class_to_ind[obj.find('name').text.strip()]
             boxes[ix, :] = [x1, y1, x2, y2]
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0

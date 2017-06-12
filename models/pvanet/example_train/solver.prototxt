@@ -1,26 +1,22 @@
-in/test net protocol buffer definition
-# this follows "ADAM: A METHOD FOR STOCHASTIC OPTIMIZATION"
-net: "examples/mnist/lenet_train_test.prototxt"
-# test_iter specifies how many forward passes the test should carry out.
-# In the case of MNIST, we have test batch size 100 and 100 test iterations,
-# covering the full 10,000 testing images.
-test_iter: 100
-# Carry out testing every 500 training iterations.
-test_interval: 500
-# All parameters are from the cited paper above
-base_lr: 0.001
-momentum: 0.9
-momentum2: 0.999
-# since Adam dynamically changes the learning rate, we set the base learning
-# rate to a fixed value
-lr_policy: "fixed"
-# Display every 100 iterations
+train_net: "models/pvanet/example_train/train.prototxt"
+
+base_lr: 0.0001
+lr_policy: "plateau"
+gamma: 0.1
+stepsize: 50000
 display: 20
-# The maximum number of iterations
-max_iter: 100000
-# snapshot intermediate results
-snapshot: 1000
-snapshot_prefix: "examples/mnist/lenet"
-# solver mode: CPU or GPU
-type: "Adam"
+average_loss: 100
+momentum: 0.9
+weight_decay: 0.0002
+plateau_winsize: 50000
+plateau_winsize: 75000
+plateau_winsize: 100000
+
+
 solver_mode: GPU
+# We disable standard caffe solver snapshotting and implement our own snapshot
+# function
+snapshot: 0
+# We still use the snapshot prefix, though
+snapshot_prefix: "pvanet_frcnn"
+iter_size: 2
