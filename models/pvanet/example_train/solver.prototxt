@@ -3,7 +3,7 @@ train_net: "models/pvanet/example_train/train.prototxt"
 base_lr: 0.0001
 lr_policy: "plateau"
 gamma: 0.1
-stepsize: 50000
+#stepsize: 50000
 display: 20
 average_loss: 100
 momentum: 0.9
