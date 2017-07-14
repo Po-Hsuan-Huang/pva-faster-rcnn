@@ -10,8 +10,14 @@
 __sets = {}
 
 from datasets.pascal_voc import pascal_voc
+from datasets.marathon import marathon
 from datasets.coco import coco
 import numpy as np
+# Set up marathon <year>_<split> 
+for year in ['2016','2017']:
+    for split in ['train', 'val','trainval','test','test1','test2']:
+        name = 'marathon_{}_{}'.format(year, split)
+        __sets[name] = (lambda split=split, year=year: marathon(split, year))
 
 # Set up voc_<year>_<split> using selective search "fast" mode
 for year in ['2007', '2012']:

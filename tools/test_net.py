@@ -17,6 +17,9 @@ import caffe
 import argparse
 import pprint
 import time, os, sys
+from marathon_tools.crop_tag import crop_tag
+from marathon_tools.detect_numbers import detect_numbers
+import copy
 
 def parse_args():
     """
@@ -31,6 +34,9 @@ def parse_args():
     parser.add_argument('--net', dest='caffemodel',
                         help='model to test',
                         default=None, type=str)
+    parser.add_argument('--net2', dest='caffemodel2',
+                        help='model to test',
+                        default=None, type=str)
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file', default=None, type=str)
     parser.add_argument('--wait', dest='wait',
@@ -38,7 +44,7 @@ def parse_args():
                         default=True, type=bool)
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to test',
-                        default='voc_2007_test', type=str)
+                        default='marathon_2017_test', type=str)
     parser.add_argument('--comp', dest='comp_mode', help='competition mode',
                         action='store_true')
     parser.add_argument('--set', dest='set_cfgs',
@@ -88,3 +94,26 @@ if __name__ == '__main__':
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
     test_net(net, imdb, max_per_image=args.max_per_image, vis=args.vis)
+
+    # only do step two number detection if the project name is 'marathon'
+    if imdb.name.split('_')[0] == 'marathon':
+        # step 2 detection for marathon task
+        if cfg.TEST.CROP_IMAGES: 
+            crop_tag(imdb, net)
+    
+        if cfg.TEST.STEP2_TEST :
+            # load config for step2     
+            cfg_from_file(os.path.join(os.path.dirname(args.cfg_file) , 'detect_step2.yml'))
+            # load image and txt path for step2
+            imdb2 = copy.deepcopy(imdb)
+            imdb2._name = 'marathon_2017_test2'
+            imdb2._image_set = 'test2'
+            imdb2._data_path = os.path.join(imdb._data_path, 'crop_pics')
+            imdb2._image_index = imdb2._load_image_set_index()
+            # load caffemodel for step2
+            net2 = caffe.Net(args.prototxt, args.caffemodel2, caffe.TEST)
+            net2.name = os.path.splitext(os.path.basename(args.caffemodel2))[0]
+            test_net(net2, imdb2, max_per_image=args.max_per_image, vis=args.vis)
+            detect_numbers(imdb, imdb2, net, net2)
+            
+             

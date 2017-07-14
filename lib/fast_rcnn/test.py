@@ -18,6 +18,7 @@ from fast_rcnn.nms_wrapper import nms
 import cPickle
 from utils.blob import im_list_to_blob
 import os
+import glob
 from utils.cython_bbox import bbox_overlaps
 
 
@@ -349,6 +350,15 @@ def test_net(net, imdb, max_per_image=100, thresh=0.01, vis=False):
     det_file = os.path.join(output_dir, 'detections.pkl')
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
-
+    
     print 'Evaluating detections'
-    imdb.evaluate_detections(all_boxes, output_dir)
+    # Do evalutation only if the annot path exists.
+    annopath = os.path.join( imdb._data_path,'Annotations')
+    try :       
+    	imdb.evaluate_detections(all_boxes, output_dir)
+    except IOError : 
+       if os.listdir(annopath) == [] :
+          print 'Annotation path empty, skip evaluation.'
+       else:
+          raise
+

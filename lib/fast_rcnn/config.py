@@ -177,6 +177,14 @@ __C.TEST.BBOX_VOTE_N_WEIGHTED_SCORE = 1
 __C.TEST.BBOX_VOTE_WEIGHT_EMPTY = 0.5
 
 
+# Crop Detected images using marathon tools
+__C.TEST.CROP_IMAGES = False
+
+# Do two step number detection
+__C.TEST.STEP2_TEST = False
+ 
+
+
 #
 # MISC
 #
